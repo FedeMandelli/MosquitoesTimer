@@ -1,0 +1,7 @@
+=== To Do ===
+* counter object
+    + plus minus buttons
+    + digit
+    + reset
+* timer object
+    + resume and reset
