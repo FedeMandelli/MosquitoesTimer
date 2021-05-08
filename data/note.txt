@@ -1,7 +1,9 @@
 === To Do ===
-* counter object
-    + plus minus buttons
-    + digit
-    + reset
-* timer object
-    + resume and reset
+* reset
+    + reset all timers
+* bind keys
+* feeding - timer come probe and sensing - fermare se probe and sensing sta andando
+* probe and sensing si ferma quando landing si ferma
+* first land
+* nuova colonna con minuti e secondi
+* R counter più piccolo e segnare minutaggi pressione counter

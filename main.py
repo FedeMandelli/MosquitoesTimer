@@ -5,6 +5,7 @@ import tkinter as tk
 import pandas as pd
 from winsound import Beep
 from time import perf_counter, strftime, gmtime
+from datetime import datetime
 
 # general settings
 up_time = 1_000  # ms
@@ -31,34 +32,57 @@ def format_n(n):
 
 def update_info(t_stamp, event):
     # global variables
-    global log_lbl
-    global main_t
     global data
     
     # get all information
-    end_t = perf_counter() - main_t.t
+    end_t = perf_counter() - info['main_timer'].t
     start_t = end_t - t_stamp
-    ev_info = [{'event': event,
-                'start time': format_n(start_t),
-                'duration': format_n(t_stamp),
-                'end time': format_n(end_t)}]
-    data = data.append(ev_info)
+    ev_info = {'event': event,
+               'start time': format_n(start_t),
+               'duration': format_n(t_stamp),
+               'end time': format_n(end_t)}
+    data = data.append([ev_info])
     
     # update event log
-    log_info = f'{ev_info[0]["event"]} - {ev_info[0]["duration"]}'
-    log_lbl.txt = log_info if log_lbl.txt == '' else f'{log_lbl.txt}\n{log_info}'
-    log_lbl.lbl.configure(text=log_lbl.txt)
+    log_info = f'{ev_info["event"]} - {ev_info["duration"]}'
+    info['log'].txt = log_info if info['log'].txt == '' else f'{info["log"].txt}\n{log_info}'
+    info['log'].lbl.configure(text=info['log'].txt)
 
 
 def export_data():
+    # global variables
+    global data
+    
+    # get experiment time
+    t = datetime.now().strftime('%Y-%m-%d_%H-%M')
+    
     # get counters info
+    for c in info['counters']:
+        c_info = {'event': c.txt,
+                  'count': c.val}
+        data = data.append([c_info])
     
     # export to excel
-    data.to_excel('test.xlsx', index=False)
+    file_name = f'test_{t}.xlsx'
+    data.to_excel(file_name, index=False)
 
 
 def reset_data():
-    pass
+    # clear data
+    global data
+    data.drop(data.index, inplace=True)
+    
+    # clear log
+    info['log'].txt = ''
+    info['log'].lbl.configure(text='')
+    
+    # reset timers
+    for t in info['timers']:
+        t.reset_t()
+    
+    # reset counters
+    for c in info['counters']:
+        c.reset_c()
 
 
 # GUI elements
@@ -115,6 +139,7 @@ class Lbl:
     def log(self):
         self.lbl.configure(font=(font, size, 'italic'), width=25)
         self.lbl.grid(columnspan=2, sticky='n')
+        info['log'] = self
 
 
 class Btn:
@@ -173,6 +198,7 @@ class Timer:
         self.col = col
         self.stop = True
         self.t = 0
+        info['timers'].append(self)
         
         # frame
         self.frame = LblFrame(self.root, self.txt, self.row, self.col).lblframe
@@ -198,17 +224,25 @@ class Timer:
         self.t = perf_counter() - self.t
         self.update_t()
         self.start_stop.btn.configure(text='Stop', command=self.stop_t)
+        self.start_stop.btn.bind_all(self.key, lambda _: self.stop_t())
     
     def stop_t(self):
         # get info
         t = perf_counter() - self.t
         update_info(t, self.txt)
-        
+        self.reset_t()
+    
+    def reset_t(self):
         # reset timer
         self.stop = True
         self.t = 0
         self.timestamp.lbl.configure(text='00:00')
         self.start_stop.btn.configure(text='Start', command=self.start_t)
+        self.start_stop.btn.bind_all(self.key, lambda _: self.start_t())
+    
+    def bind_key(self, k):
+        self.key = k
+        self.start_stop.btn.bind_all(self.key, lambda _: self.start_t())
 
 
 class Countdown:
@@ -223,6 +257,7 @@ class Countdown:
         self.pause = True
         self.t = 0
         self.tot = int(start_t)
+        info['timers'].append(self)
         
         # frame
         self.frame = LblFrame(self.root, self.txt, self.row, self.col).lblframe
@@ -290,6 +325,7 @@ class Counter:
         self.row = row
         self.col = col
         self.val = 0
+        info['counters'].append(self)
         
         # frame
         fr = LblFrame(self.root, self.txt, self.row, self.col).lblframe
@@ -311,6 +347,10 @@ class Counter:
         if op == 'r':
             self.val = 0
         self.val_btn.btn.configure(text=self.val)
+    
+    def reset_c(self):
+        self.val = 0
+        self.val_btn.btn.configure(text=self.val)
 
 
 # App
@@ -328,24 +368,20 @@ class App:
     def content(self):
         """set window content"""
         
-        # globals
-        global log_lbl
-        global main_t
-        
         # main timers
         main_fr = Frame(self.root, 0, 0).frame
-        main_t = Countdown(main_fr, 'Observation', 60 * 10, 0, 0)
+        info['main_timer'] = Countdown(main_fr, 'Observation', 60 * 10, 0, 0)
         
         # setup time, landing and walking
         land_frame = Frame(self.root, 1, 0).frame
         Countdown(land_frame, 'Setup', 60 * 2, 0, 0).setup_time()
-        Timer(land_frame, 'Landing', 0, 1)
-        Timer(land_frame, 'Walking', 0, 2)
+        Timer(land_frame, 'Landing', 0, 1).bind_key('a')
+        Timer(land_frame, 'Walking', 0, 2).bind_key('b')
         
         # probe and sensing
         prob_frame = Frame(self.root, 2, 0).frame
         Counter(prob_frame, 'Probe', 0, 0)
-        Timer(prob_frame, 'Probe & Sensing', 0, 1)
+        Timer(prob_frame, 'Probe & Sensing', 0, 1).bind_key('c')
         Counter(prob_frame, 'Sensing', 0, 2)
         
         # event log
@@ -390,8 +426,9 @@ class App:
 """ main start """
 if __name__ == '__main__':
     # create dataframe
-    columns = ['event', 'start time', 'end time','duration']
+    columns = ['event', 'start time', 'end time', 'duration']
     data = pd.DataFrame(columns=columns)
+    info = {'timers': [], 'counters': []}
     
     # launch app
     App()
