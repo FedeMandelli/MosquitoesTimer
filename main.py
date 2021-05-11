@@ -6,6 +6,7 @@ import pandas as pd
 from winsound import Beep
 from time import perf_counter, strftime, gmtime
 from datetime import datetime
+from numpy import nan
 
 # general settings
 up_time = 1_000  # ms
@@ -30,17 +31,23 @@ def format_n(n):
     return float(f'{n:.2f}')
 
 
+def format_m(m):
+    return strftime('%M:%S', gmtime(m))
+
+
 def update_info(t_stamp, event):
     # global variables
     global data
     
     # get all information
-    end_t = perf_counter() - info['main_timer'].t
+    end_t = perf_counter() - info['main'].t
     start_t = end_t - t_stamp
     ev_info = {'event': event,
                'start time': format_n(start_t),
-               'duration': format_n(t_stamp),
-               'end time': format_n(end_t)}
+               'start time (m)': format_m(start_t),
+               'end time': format_n(end_t),
+               'end time (m)': format_m(end_t),
+               'duration': format_n(t_stamp)}
     data = data.append([ev_info])
     
     # update event log
@@ -57,10 +64,12 @@ def export_data():
     t = datetime.now().strftime('%Y-%m-%d_%H-%M')
     
     # get counters info
-    for c in info['counters']:
-        c_info = {'event': c.txt,
-                  'count': c.val}
-        data = data.append([c_info])
+    for c in [info['probe'], info['sensing']]:
+        for t in c.timestamps:
+            c_info = {'event': c.txt,
+                      'start time': format_n(t),
+                      'start time (m)': format_m(t)}
+            data = data.append([c_info])
     
     # export to excel
     file_name = f'test_{t}.xlsx'
@@ -72,17 +81,9 @@ def reset_data():
     global data
     data.drop(data.index, inplace=True)
     
-    # clear log
-    info['log'].txt = ''
-    info['log'].lbl.configure(text='')
-    
-    # reset timers
-    for t in info['timers']:
-        t.reset_t()
-    
-    # reset counters
-    for c in info['counters']:
-        c.reset_c()
+    # clear log, reset timers and counters
+    for name, element in info.items():
+        element.reset_t()
 
 
 # GUI elements
@@ -140,6 +141,10 @@ class Lbl:
         self.lbl.configure(font=(font, size, 'italic'), width=25)
         self.lbl.grid(columnspan=2, sticky='n')
         info['log'] = self
+    
+    def reset_t(self):
+        self.txt = ''
+        self.lbl.configure(text='')
 
 
 class Btn:
@@ -179,6 +184,7 @@ class Btn:
         self.btn.grid(padx=0, pady=0)
     
     def counter_small(self):
+        self.btn.configure(font=(font, size // 2))
         self.btn.grid(padx=0, pady=0, sticky='s')
     
     def timer(self):
@@ -198,7 +204,7 @@ class Timer:
         self.col = col
         self.stop = True
         self.t = 0
-        info['timers'].append(self)
+        self.update_info()
         
         # frame
         self.frame = LblFrame(self.root, self.txt, self.row, self.col).lblframe
@@ -227,7 +233,6 @@ class Timer:
         self.start_stop.btn.bind_all(self.key, lambda _: self.stop_t())
     
     def stop_t(self):
-        # get info
         t = perf_counter() - self.t
         update_info(t, self.txt)
         self.reset_t()
@@ -243,6 +248,14 @@ class Timer:
     def bind_key(self, k):
         self.key = k
         self.start_stop.btn.bind_all(self.key, lambda _: self.start_t())
+    
+    def update_info(self):
+        if self.txt == 'Landing':
+            info['landing'] = self
+        if self.txt == 'Walking':
+            info['walking'] = self
+        if self.txt == 'Probe & Sensing':
+            info['probe_sensing'] = self
 
 
 class Countdown:
@@ -257,7 +270,7 @@ class Countdown:
         self.pause = True
         self.t = 0
         self.tot = int(start_t)
-        info['timers'].append(self)
+        self.update_info()
         
         # frame
         self.frame = LblFrame(self.root, self.txt, self.row, self.col).lblframe
@@ -313,6 +326,12 @@ class Countdown:
     def setup_time(self):
         self.start_pause.btn.configure(width=5)
         self.reset.btn.configure(width=5)
+    
+    def update_info(self):
+        if self.txt == 'Setup':
+            info['setup'] = self
+        if self.txt == 'Observation':
+            info['main'] = self
 
 
 class Counter:
@@ -325,7 +344,8 @@ class Counter:
         self.row = row
         self.col = col
         self.val = 0
-        info['counters'].append(self)
+        self.timestamps = []
+        self.update_info()
         
         # frame
         fr = LblFrame(self.root, self.txt, self.row, self.col).lblframe
@@ -341,6 +361,8 @@ class Counter:
     def change_val(self, op):
         if op == '+':
             self.val += 1
+            t = perf_counter() - info['main'].t
+            self.timestamps.append(format_n(t))
         if op == '-':
             if self.val != 0:
                 self.val -= 1
@@ -348,9 +370,16 @@ class Counter:
             self.val = 0
         self.val_btn.btn.configure(text=self.val)
     
-    def reset_c(self):
+    def reset_t(self):
         self.val = 0
         self.val_btn.btn.configure(text=self.val)
+        self.timestamps = []
+    
+    def update_info(self):
+        if self.txt == 'Probe':
+            info['probe'] = self
+        if self.txt == 'Sensing':
+            info['sensing'] = self
 
 
 # App
@@ -370,7 +399,7 @@ class App:
         
         # main timers
         main_fr = Frame(self.root, 0, 0).frame
-        info['main_timer'] = Countdown(main_fr, 'Observation', 60 * 10, 0, 0)
+        Countdown(main_fr, 'Observation', 60 * 10, 0, 0)
         
         # setup time, landing and walking
         land_frame = Frame(self.root, 1, 0).frame
@@ -426,9 +455,16 @@ class App:
 """ main start """
 if __name__ == '__main__':
     # create dataframe
-    columns = ['event', 'start time', 'end time', 'duration']
+    columns = ['event', 'start time', 'start time (m)', 'end time', 'end time (m)', 'duration']
     data = pd.DataFrame(columns=columns)
-    info = {'timers': [], 'counters': []}
+    info = {'log': nan,
+            'main': nan,
+            'setup': nan,
+            'landing': nan,
+            'walking': nan,
+            'probe_sensing': nan,
+            'probe': nan,
+            'sensing': nan}
     
     # launch app
     App()
