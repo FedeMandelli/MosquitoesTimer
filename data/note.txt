@@ -1,4 +1,3 @@
 === To Do ===
-* feeding - timer come probe and sensing - fermare se probe and sensing sta andando
+* feeding - fermare se probe and sensing sta andando
 * probe and sensing si ferma quando landing si ferma
-* first land
