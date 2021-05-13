@@ -390,6 +390,8 @@ class Counter:
             self.val += 1
             t = perf_counter() - info['main'].t
             self.timestamps.append(format_n(t))
+            if info['probe_sensing'].stop:
+                info['probe_sensing'].start_t()
         if op == '-':
             if self.val != 0:
                 self.val -= 1
@@ -432,15 +434,15 @@ class App:
         
         # setup time, landing and walking
         land_frame = Frame(self.root, 1, 0).frame
-        Timer(land_frame, 'Landing', 0, 0).bind_key('<Return>')
+        Timer(land_frame, 'Landing', 0, 0).bind_key('<space>')
         Timer(land_frame, 'Walking', 0, 1).bind_key('w')
-        Timer(land_frame, 'Feeding', 0, 2).bind_key('o')
+        Timer(land_frame, 'Feeding', 0, 2).bind_key('n')
         
         # probe and sensing
         prob_frame = Frame(self.root, 2, 0).frame
-        Counter(prob_frame, 'Probe', '<space>', 0, 0)
-        Timer(prob_frame, 'Probe & Sensing', 0, 1).bind_key('d')
-        Counter(prob_frame, 'Sensing', 's', 0, 2)
+        Counter(prob_frame, 'Probe', 'p', 0, 0)
+        Timer(prob_frame, 'Probe & Sensing', 0, 1).bind_key('<Return>')
+        Counter(prob_frame, 'Sensing', 'l', 0, 2)
         
         # event log
         log_frame = LblFrame(self.root, 'Events Log', 0, 1).lblframe
