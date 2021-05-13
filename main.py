@@ -148,6 +148,10 @@ class Lbl:
     def reset_t(self):
         self.txt = ''
         self.lbl.configure(text='')
+    
+    def legend(self):
+        self.lbl.configure(font=(font, size // 2, 'italic'), fg=c1)
+        self.lbl.grid(padx=0, pady=0, columnspan=2)
 
 
 class Btn:
@@ -439,7 +443,7 @@ class App:
         Counter(prob_frame, 'Sensing', 's', 0, 2)
         
         # event log
-        log_frame = LblFrame(self.root, 'Events Log', 0, 2).lblframe
+        log_frame = LblFrame(self.root, 'Events Log', 0, 1).lblframe
         log_frame.grid(rowspan=3)
         log_frame.rowconfigure(0, weight=1)
         log_lbl = Lbl(log_frame, '', 0, 0)
@@ -448,6 +452,15 @@ class App:
         # buttons
         Btn(log_frame, 'Export', export_data, 1, 0).timer()
         Btn(log_frame, 'Reset', reset_data, 1, 1).timer()
+        
+        # legend
+        leg = []
+        for i in info.values():
+            if i.txt not in ['Setup', 'Observation', '']:
+                a = f'{i.txt}({i.key})'
+                leg.append(a)
+        leg = ' - '.join(leg)
+        Lbl(self.root, leg, 3, 0).legend()
     
     def setup(self):
         """root settings"""
