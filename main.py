@@ -46,7 +46,7 @@ def update_info(t_stamp, event):
                'start time (m)': format_m(start_t),
                'end time': format_n(end_t),
                'end time (m)': format_m(end_t),
-               'duration': format_n(t_stamp)}
+               'duration (s)': format_n(t_stamp)}
     # check if first landing
     if event == 'Landing' and 'Landing' not in data['event'].values:
         ev_info['first land'] = 'yes'
@@ -54,7 +54,7 @@ def update_info(t_stamp, event):
     data = data.append([ev_info])
     
     # update event log
-    log_info = f'{ev_info["event"]} - {ev_info["duration"]}'
+    log_info = f'{ev_info["event"]} - {ev_info["duration (s)"]}'
     info['log'].txt = log_info if info['log'].txt == '' else f'{info["log"].txt}\n{log_info}'
     info['log'].lbl.configure(text=info['log'].txt)
 
@@ -235,11 +235,13 @@ class Timer:
         self.update_t()
         self.start_stop.btn.configure(text='Stop', command=self.stop_t)
         self.start_stop.btn.bind_all(self.key, lambda _: self.stop_t())
+        self.start_cond()
     
     def stop_t(self):
         t = perf_counter() - self.t
         update_info(t, self.txt)
         self.reset_t()
+        self.stop_cond()
     
     def reset_t(self):
         # reset timer
@@ -262,6 +264,18 @@ class Timer:
             info['feeding'] = self
         if self.txt == 'Probe & Sensing':
             info['probe_sensing'] = self
+    
+    def start_cond(self):
+        if self.txt == 'Feeding':
+            for i in [info['walking'], info['probe_sensing']]:
+                if not i.stop:
+                    i.stop_t()
+    
+    def stop_cond(self):
+        if self.txt == 'Landing':
+            for i in [info['probe_sensing'], info['feeding']]:
+                if not i.stop:
+                    i.stop_t()
 
 
 class Countdown:
@@ -466,7 +480,7 @@ class App:
 """ main start """
 if __name__ == '__main__':
     # create dataframe
-    columns = ['event', 'start time', 'start time (m)', 'end time', 'end time (m)', 'duration']
+    columns = ['event', 'start time (m)', 'end time (m)', 'duration (s)', 'start time', 'end time']
     data = pd.DataFrame(columns=columns)
     info = {}
     

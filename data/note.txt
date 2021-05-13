@@ -1,3 +1,6 @@
 === To Do ===
-* feeding - fermare se probe and sensing sta andando
-* probe and sensing si ferma quando landing si ferma
+* feeding start:
+    + walking/probe e sensing si devono fermare se stanno andando (DONE)
+
+* landing stop:
+    + probe and sensing/feeding si devono fermare se stanno andando (DONE)
