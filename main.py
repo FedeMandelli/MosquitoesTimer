@@ -274,6 +274,9 @@ class Timer:
             for i in [info['walking'], info['probe_sensing']]:
                 if not i.stop:
                     i.stop_t()
+        if self.txt == 'Probe & Sensing':
+            if info['landing'].stop:
+                info['landing'].start_t()
     
     def stop_cond(self):
         if self.txt == 'Landing':
