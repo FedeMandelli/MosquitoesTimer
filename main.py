@@ -450,13 +450,13 @@ class App:
         # event log
         log_frame = LblFrame(self.root, 'Events Log', 0, 1).lblframe
         log_frame.grid(rowspan=3)
-        log_frame.rowconfigure(0, weight=1)
-        log_lbl = Lbl(log_frame, '', 0, 0)
+        log_frame.rowconfigure(1, weight=1)
+        log_lbl = Lbl(log_frame, '', 1, 0)
         log_lbl.log()
         
         # buttons
-        Btn(log_frame, 'Export', export_data, 1, 0).timer()
-        Btn(log_frame, 'Reset', reset_data, 1, 1).timer()
+        Btn(log_frame, 'Export', export_data, 0, 0).timer()
+        Btn(log_frame, 'Reset', reset_data, 0, 1).timer()
         
         # legend
         leg = []
@@ -489,7 +489,7 @@ class App:
         
         self.root.title('Mosquitoes Timer')
         self.root.iconbitmap(r'data/msq_1.ico')
-        self.root.resizable(False, False)
+        # self.root.resizable(False, False)
         self.root.configure(bg=c0)
         self.root.protocol('WM_DELETE_WINDOW', closing)
         position()
