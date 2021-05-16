@@ -6,9 +6,11 @@ import pandas as pd
 from winsound import Beep
 from time import perf_counter, strftime, gmtime
 from datetime import datetime
+from os import path
 
 # general settings
 up_time = 1_000  # ms
+save_path = 'C:/Users/Federico/Desktop/test'
 
 # GUI style
 font = 'verdana'
@@ -54,9 +56,7 @@ def update_info(t_stamp, event):
     data = data.append([ev_info])
     
     # update event log
-    log_info = f'{ev_info["event"]} - {ev_info["duration (s)"]}'
-    info['log'].txt = log_info if info['log'].txt == '' else f'{info["log"].txt}\n{log_info}'
-    info['log'].lbl.configure(text=info['log'].txt)
+    log_update()
 
 
 def export_data():
@@ -76,7 +76,8 @@ def export_data():
     
     # export to excel
     file_name = f'test_{current_t}.xlsx'
-    data.to_excel(file_name, index=False)
+    dest = path.join(save_path, file_name)
+    data.to_excel(dest, index=False)
 
 
 def reset_data():
@@ -87,6 +88,19 @@ def reset_data():
     # clear log, reset timers and counters
     for name, element in info.items():
         element.reset_t()
+
+
+def remove_last():
+    global data
+    
+    # remove last row and update label
+    data = data[:-1]
+    log_update()
+
+
+def log_update():
+    info['log'].txt = '\n'.join([f'{a} - {b}' for a, b in zip(data['event'].values, data['duration (s)'].values)])
+    info['log'].lbl.configure(text=info['log'].txt)
 
 
 # GUI elements
@@ -453,6 +467,7 @@ class App:
         log_frame.rowconfigure(1, weight=1)
         log_lbl = Lbl(log_frame, '', 1, 0)
         log_lbl.log()
+        log_lbl.lbl.bind_all('<BackSpace>', lambda _: remove_last())
         
         # buttons
         Btn(log_frame, 'Export', export_data, 0, 0).timer()

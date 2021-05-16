@@ -1,6 +1,6 @@
 === To Do ===
-* feeding start:
-    + walking/probe e sensing si devono fermare se stanno andando (DONE)
-
-* landing stop:
-    + probe and sensing/feeding si devono fermare se stanno andando (DONE)
+* cartella analisi su desktop * DONE
+* salvataggio automatico (temp file?)
+* stop timers quando finisce il main
+* dire che il file è stato salvato
+* backspace per annulare ultimo elemento registrato * DONE
