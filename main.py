@@ -12,8 +12,8 @@ from os import path
 # general settings
 up_time = 1_000  # ms
 temperature = 0
-# save_path = 'C:/Users/mc9241x/Desktop/Timer Data'
-save_path = 'C:/Users/Federico/Desktop/test'
+save_path = 'C:/Users/mc9241x/Desktop/Timer Data'
+# save_path = 'C:/Users/Federico/Desktop/test'
 
 # GUI style
 font = 'verdana'
