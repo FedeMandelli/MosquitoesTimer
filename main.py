@@ -16,7 +16,7 @@ save_path = 'C:/Users/mc9241x/Desktop/Timer Data'
 # save_path = 'C:/Users/Federico/Desktop/test'
 
 # GUI style
-font = 'verdana'
+font = 'segoe ui'
 size = 16
 pad = size // 2
 c0 = '#2d3436'
@@ -174,7 +174,7 @@ class Lbl:
         self.lbl.grid(columnspan=2, padx=0, pady=0)
     
     def log(self):
-        self.lbl.configure(font=(font, size, 'italic'), width=25)
+        self.lbl.configure(font=(font, size//3*2, 'italic'), width=25)
         self.lbl.grid(columnspan=2, sticky='n')
         info['log'] = self
     
@@ -241,8 +241,9 @@ class Radio:
         self.col = col
         
         # create radio button
-        self.rad = tk.Radiobutton(self.root, text=self.val, variable=1, value=self.val, font=(font, size // 2))
-        self.rad.configure(bg=c2, fg=c0, activebackground=c2, activeforeground=c0, command=self.sel)
+        self.rad = tk.Radiobutton(self.root, text=self.val, variable=1, value=self.val, font=(font, size),
+                                  selectcolor=c1)
+        self.rad.configure(bg=c0, fg=c2, activebackground=c0, activeforeground=c2, command=self.sel, indicatoron=0)
         self.rad.grid(row=self.row, column=self.col, padx=pad, pady=pad)
     
     def sel(self):
