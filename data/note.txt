@@ -1,6 +1,6 @@
 === To Do ===
-* cartella analisi su desktop * DONE
 * salvataggio automatico (temp file?)
-* stop timers quando finisce il main
-* dire che il file è stato salvato
-* backspace per annulare ultimo elemento registrato * DONE
+* temperature 30-36-42-48
+* beep conferma schiaccio tasti
+* Thread per beeps
+* controllare export finale
