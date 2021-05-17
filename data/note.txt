@@ -1,6 +1,2 @@
 === To Do ===
 * salvataggio automatico (temp file?)
-* temperature 30-36-42-48
-* beep conferma schiaccio tasti
-* Thread per beeps
-* controllare export finale

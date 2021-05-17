@@ -108,6 +108,7 @@ def remove_last():
     # remove last row and update label
     data = data[:-1]
     log_update()
+    confirm_sound()
 
 
 def log_update():
@@ -174,7 +175,7 @@ class Lbl:
         self.lbl.grid(columnspan=2, padx=0, pady=0)
     
     def log(self):
-        self.lbl.configure(font=(font, size//3*2, 'italic'), width=25)
+        self.lbl.configure(font=(font, size // 3 * 2, 'italic'), width=25)
         self.lbl.grid(columnspan=2, sticky='n')
         info['log'] = self
     
@@ -525,7 +526,7 @@ class App:
         log_frame.rowconfigure(1, weight=1)
         log_lbl = Lbl(log_frame, '', 1, 0)
         log_lbl.log()
-        log_lbl.lbl.bind_all('<BackSpace>', lambda _: remove_last())
+        log_lbl.lbl.bind_all('<Control-z>', lambda _: remove_last())
         
         # buttons
         Btn(log_frame, 'Export', export_data, 0, 0).timer()
