@@ -3,7 +3,7 @@
 # imports
 import tkinter as tk
 import pandas as pd
-from tkinter.messagebox import showinfo
+from tkinter.messagebox import showinfo, askyesno
 from winsound import Beep
 from time import perf_counter, strftime, gmtime
 from datetime import datetime
@@ -82,8 +82,12 @@ def export_data():
                           'start time (m)': format_m(t)}
                 data = data.append([c_info])
     
+    # ask if eat and export
+    eat = 'Yes' if askyesno('Eating check', 'Did the mosquito eat?') else 'No'
+    c = code.ent.get()
+    
     # export to excel
-    file_name = f'timer_{current_t}_{temperature}.xlsx'
+    file_name = f'timer_{current_t}_({c})_{eat}_{temperature}.xlsx'
     dest = path.join(save_path, file_name)
     data.to_excel(dest, index=False)
     
@@ -100,6 +104,9 @@ def reset_data():
     # clear log, reset timers and counters
     for name, element in info.items():
         element.reset_t()
+    
+    # clear code
+    code.ent.delete(0, 'end')
 
 
 def remove_last():
@@ -186,6 +193,24 @@ class Lbl:
     def legend(self):
         self.lbl.configure(font=(font, size // 2, 'italic'), fg=c1)
         self.lbl.grid(padx=0, pady=0, columnspan=2)
+
+
+class Entry:
+    """entry widget"""
+    
+    def __init__(self, root, row, col):
+        # get info
+        self.root = root
+        self.row = row
+        self.col = col
+        
+        # create label
+        self.ent = tk.Entry(self.root, font=(font, size), justify='center')
+        self.ent.configure(bg=c0, fg=c3, insertbackground=c3, relief='ridge')
+        self.ent.grid(row=self.row, column=self.col)
+    
+    def code(self):
+        self.ent.grid(columnspan=2)
 
 
 class Btn:
@@ -496,6 +521,8 @@ class App:
     def content(self):
         """set window content"""
         
+        global code
+        
         # main and setup countdown
         main_fr = Frame(self.root, 0, 0).frame
         Countdown(main_fr, 'Setup', 60 * 2, 1, 0).setup_time()
@@ -523,14 +550,16 @@ class App:
         # event log
         log_frame = LblFrame(self.root, 'Events Log', 0, 1).lblframe
         log_frame.grid(rowspan=3)
-        log_frame.rowconfigure(1, weight=1)
-        log_lbl = Lbl(log_frame, '', 1, 0)
+        log_frame.rowconfigure(2, weight=1)
+        code = Entry(log_frame, 0, 0)
+        code.code()
+        log_lbl = Lbl(log_frame, '', 2, 0)
         log_lbl.log()
         log_lbl.lbl.bind_all('<Control-z>', lambda _: remove_last())
         
         # buttons
-        Btn(log_frame, 'Export', export_data, 0, 0).timer()
-        Btn(log_frame, 'Reset', reset_data, 0, 1).timer()
+        Btn(log_frame, 'Export', export_data, 1, 0).timer()
+        Btn(log_frame, 'Reset', reset_data, 1, 1).timer()
         
         # legend
         leg = []
@@ -575,6 +604,7 @@ if __name__ == '__main__':
     columns = ['event', 'start time (m)', 'end time (m)', 'duration (s)', 'start time', 'end time']
     data = pd.DataFrame(columns=columns)
     info = {}
+    code = Entry
     
     # launch app
     App()
