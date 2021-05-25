@@ -556,6 +556,7 @@ class App:
         log_lbl = Lbl(log_frame, '', 2, 0)
         log_lbl.log()
         log_lbl.lbl.bind_all('<Control-z>', lambda _: remove_last())
+        self.root.bind_all('<Escape>', lambda _: self.root.focus())
         
         # buttons
         Btn(log_frame, 'Export', export_data, 1, 0).timer()
